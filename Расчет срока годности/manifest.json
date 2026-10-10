@@ -1,0 +1,19 @@
+{
+  "name": "Расчёт срока годности",
+  "short_name": "Срок годности",
+  "description": "Калькулятор компенсации по сроку годности товара",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f5f5",
+  "theme_color": "#1a73e8",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
