@@ -139,7 +139,6 @@
     input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
   }
 
-  /* Подпись под полем — с автоматически подставленным значением */
   .field-hint {
     margin-top: 6px;
     font-size: 13px;
@@ -214,7 +213,6 @@
 
   .btn-secondary:active { opacity: 0.7; }
 
-  /* ============ ИСТОРИЯ ============ */
   .history-item {
     padding: 12px;
     border-radius: 8px;
@@ -290,6 +288,17 @@
 
   .install-banner.show { display: block; }
   .install-banner:active { opacity: 0.85; }
+
+  /* ============ АНИМАЦИИ ============ */
+  @keyframes toastIn {
+    from { opacity: 0; transform: translate(-50%, 12px); }
+    to   { opacity: 1; transform: translate(-50%, 0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
 </style>
 </head>
 <body>
@@ -331,7 +340,8 @@
       <strong id="b6">—</strong>
     </div>
 
-    <button class="btn btn-primary" style="margin-top: 20px;" onclick="saveToHistory()">
+    <button class="btn btn-primary" style="margin-top: 20px;"
+            onclick="saveToHistory(this)">
       💾 Сохранить в историю
     </button>
 
@@ -340,7 +350,6 @@
     </button>
   </div>
 
-  <!-- История -->
   <div class="card">
     <h2>📋 История (последние 10)</h2>
     <div id="historyList">
@@ -406,15 +415,16 @@ function recalc(source) {
   const orderDate = dateFromInput(c4El.value);
 
   // ==== СИНХРОНИЗАЦИЯ ====
-  if (source === "c1" || source === "c2") {
+  // При загрузке — не пересчитываем, показываем как сохранили
+  if (source === "load") {
+    // ничего не делаем
+  } else if (source === "c1" || source === "c2") {
     if (dateMade && !isNaN(shelfLife) && shelfLife > 0) {
       goodUntil = new Date(dateMade);
       goodUntil.setDate(goodUntil.getDate() + shelfLife - 1);
       c3El.value = dateToInput(goodUntil);
     }
-  }
-
-  if (source === "c3") {
+  } else if (source === "c3") {
     if (dateMade && goodUntil) {
       const diff = Math.round((goodUntil - dateMade) / 86400000) + 1;
       if (diff > 0) {
@@ -427,7 +437,7 @@ function recalc(source) {
     }
   }
 
-  // ==== ПОДСКАЗКА ПОД ПОЛЕМ "ГОДЕН ДО" ====
+  // ==== ПОДСКАЗКА ПОД "ГОДЕН ДО" ====
   const hint = document.getElementById("b3-hint");
   if (goodUntil) {
     hint.innerHTML = `Годен до: <strong>${formatDate(goodUntil)}</strong>`;
@@ -468,7 +478,9 @@ function recalc(source) {
   else if (action === "Частично компенсируем") b5.classList.add("partial");
   else if (action === "Не компенсируем")       b5.classList.add("nokomp");
 
-  saveForm();
+  // Автосохранение — только если это не загрузка
+  if (source !== "load") saveForm();
+
   isUpdating = false;
 }
 
@@ -494,7 +506,7 @@ function loadForm() {
     document.getElementById("c2").value = data.c2 || "";
     document.getElementById("c3").value = data.c3 || "";
     document.getElementById("c4").value = data.c4 || "";
-    recalc("c1");
+    recalc("load");
   } catch (e) {}
 }
 
@@ -512,14 +524,14 @@ function setHistory(arr) {
   try { localStorage.setItem(STORAGE_HISTORY, JSON.stringify(arr)); } catch (e) {}
 }
 
-function saveToHistory() {
+function saveToHistory(btn) {
   const c1 = document.getElementById("c1").value;
   const c2 = document.getElementById("c2").value;
   const c3 = document.getElementById("c3").value;
   const c4 = document.getElementById("c4").value;
 
   if (!c1 || !c2 || !c4) {
-    alert("Заполните хотя бы: дата изготовления, срок, дата заказа");
+    showToast("Заполните: дата изготовления, срок, дата заказа");
     return;
   }
 
@@ -534,10 +546,11 @@ function saveToHistory() {
   setHistory(history);
   renderHistory();
 
-  const btn = event.target;
-  const orig = btn.textContent;
-  btn.textContent = "✅ Сохранено!";
-  setTimeout(() => btn.textContent = orig, 1200);
+  if (btn) {
+    const orig = btn.textContent;
+    btn.textContent = "✅ Сохранено!";
+    setTimeout(() => btn.textContent = orig, 1200);
+  }
 }
 
 function renderHistory() {
@@ -560,7 +573,6 @@ function renderHistory() {
     if (item.action === "Компенсируем") actionClass = "komp";
     else if (item.action === "Частично компенсируем") actionClass = "partial";
 
-    // Формат отображения даты — из YYYY-MM-DD в DD.MM.YYYY
     const d1 = item.c1 ? item.c1.split("-").reverse().join(".") : "—";
     const d4 = item.c4 ? item.c4.split("-").reverse().join(".") : "—";
 
@@ -587,15 +599,18 @@ function loadFromHistory(idx) {
   document.getElementById("c2").value = item.c2 || "";
   document.getElementById("c3").value = item.c3 || "";
   document.getElementById("c4").value = item.c4 || "";
-  recalc("c1");
+  recalc("load");
+  saveForm();
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function clearHistory() {
-  if (!confirm("Очистить всю историю?")) return;
-  setHistory([]);
-  renderHistory();
+  showConfirm("Очистить всю историю?", () => {
+    setHistory([]);
+    renderHistory();
+    showToast("История очищена");
+  });
 }
 
 // =====================================================
@@ -607,6 +622,7 @@ function resetAll() {
   document.getElementById("c3").value = "";
   document.getElementById("c4").value = "";
   recalc("c1");
+  saveForm();
 }
 
 // =====================================================
@@ -616,6 +632,89 @@ document.getElementById("c1").addEventListener("change", () => recalc("c1"));
 document.getElementById("c2").addEventListener("input",  () => recalc("c2"));
 document.getElementById("c3").addEventListener("change", () => recalc("c3"));
 document.getElementById("c4").addEventListener("change", () => recalc("c4"));
+
+// =====================================================
+// TOAST — всплывающее уведомление
+// =====================================================
+function showToast(message) {
+  const existing = document.getElementById("toast");
+  if (existing) existing.remove();
+
+  const toast = document.createElement("div");
+  toast.id = "toast";
+  toast.textContent = message;
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(32, 33, 36, 0.95);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    z-index: 9999;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    max-width: 90%;
+    text-align: center;
+    animation: toastIn 0.2s ease-out;
+  `;
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transition = "opacity 0.3s";
+    setTimeout(() => toast.remove(), 300);
+  }, 2500);
+}
+
+// =====================================================
+// CONFIRM — свой диалог подтверждения
+// =====================================================
+function showConfirm(message, onConfirm) {
+  const overlay = document.createElement("div");
+  overlay.style.cssText = `
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 16px;
+    animation: fadeIn 0.15s;
+  `;
+
+  const dialog = document.createElement("div");
+  dialog.style.cssText = `
+    background: var(--card);
+    color: var(--text);
+    border-radius: 14px;
+    padding: 20px;
+    max-width: 340px;
+    width: 100%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  `;
+  dialog.innerHTML = `
+    <div style="font-size: 16px; margin-bottom: 16px; text-align: center;">${message}</div>
+    <div style="display: flex; gap: 8px;">
+      <button class="btn btn-secondary" style="margin: 0;" id="confirmCancel">Отмена</button>
+      <button class="btn btn-primary" style="margin: 0;" id="confirmOk">Да</button>
+    </div>
+  `;
+
+  overlay.appendChild(dialog);
+  document.body.appendChild(overlay);
+
+  document.getElementById("confirmCancel").onclick = () => overlay.remove();
+  document.getElementById("confirmOk").onclick = () => {
+    overlay.remove();
+    onConfirm();
+  };
+  overlay.onclick = (e) => {
+    if (e.target === overlay) overlay.remove();
+  };
+}
 
 // =====================================================
 // PWA — УСТАНОВКА
