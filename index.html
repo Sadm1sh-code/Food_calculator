@@ -22,7 +22,6 @@
     --display-bg: #f1f3f4;
     --primary: #1a73e8;
     --primary-hover: #1558b0;
-    --empty: #9aa0a6;
     --error: #d93025;
     --komp-bg: #f4cccc;
     --komp-text: #a50e0e;
@@ -43,7 +42,6 @@
       --display-bg: #35363a;
       --primary: #8ab4f8;
       --primary-hover: #a8c7fa;
-      --empty: #80868b;
       --error: #f28b82;
       --komp-bg: #5c2626;
       --komp-text: #f8bbbb;
@@ -109,15 +107,9 @@
     letter-spacing: 0.3px;
   }
 
-  .row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
-
   input[type="date"],
   input[type="number"] {
-    flex: 1;
+    width: 100%;
     padding: 14px 12px;
     border: 1.5px solid var(--border);
     border-radius: 10px;
@@ -147,25 +139,21 @@
     input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
   }
 
-  .display {
-    padding: 14px 12px;
-    background: var(--display-bg);
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text);
-    min-height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 120px;
+  /* Подпись под полем — с автоматически подставленным значением */
+  .field-hint {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    padding-left: 4px;
   }
 
-  .display.date { color: var(--primary); }
-  .display.empty { color: var(--empty); }
+  .field-hint strong {
+    color: var(--primary);
+    font-weight: 600;
+  }
 
   .action-box {
-    margin-top: 24px;
+    margin-top: 8px;
     padding: 18px;
     border-radius: 12px;
     text-align: center;
@@ -225,14 +213,6 @@
   }
 
   .btn-secondary:active { opacity: 0.7; }
-
-  .btn-row {
-    display: flex;
-    gap: 8px;
-    margin-top: 8px;
-  }
-
-  .btn-row .btn { margin-top: 0; }
 
   /* ============ ИСТОРИЯ ============ */
   .history-item {
@@ -295,7 +275,6 @@
     font-size: 14px;
   }
 
-  /* ============ PWA установка ============ */
   .install-banner {
     display: none;
     background: var(--primary);
@@ -311,17 +290,12 @@
 
   .install-banner.show { display: block; }
   .install-banner:active { opacity: 0.85; }
-
-  @media (max-width: 380px) {
-    .display { min-width: 95px; font-size: 14px; padding: 14px 8px; }
-  }
 </style>
 </head>
 <body>
 
 <div class="container">
 
-  <!-- Баннер установки PWA -->
   <div class="install-banner" id="installBanner">
     📲 Установить приложение на телефон
   </div>
@@ -331,34 +305,23 @@
 
     <div class="field">
       <label>Дата изготовления</label>
-      <div class="row">
-        <input type="date" id="c1">
-        <div class="display date empty" id="b1">—</div>
-      </div>
+      <input type="date" id="c1">
     </div>
 
     <div class="field">
       <label>Срок хранения (дней)</label>
-      <div class="row">
-        <input type="number" id="c2" placeholder="дней" min="1" max="9999">
-        <div class="display empty" id="b2">—</div>
-      </div>
+      <input type="number" id="c2" placeholder="дней" min="1" max="9999">
     </div>
 
     <div class="field">
       <label>Годен до</label>
-      <div class="row">
-        <input type="date" id="c3">
-        <div class="display date empty" id="b3">—</div>
-      </div>
+      <input type="date" id="c3">
+      <div class="field-hint" id="b3-hint">Введите дату изготовления и срок — рассчитается автоматически</div>
     </div>
 
     <div class="field">
       <label>Дата заказа</label>
-      <div class="row">
-        <input type="date" id="c4">
-        <div class="display date empty" id="b4">—</div>
-      </div>
+      <input type="date" id="c4">
     </div>
 
     <div class="action-box" id="b5">—</div>
@@ -377,7 +340,7 @@
     </button>
   </div>
 
-  <!-- ============ ИСТОРИЯ ============ -->
+  <!-- История -->
   <div class="card">
     <h2>📋 История (последние 10)</h2>
     <div id="historyList">
@@ -394,8 +357,8 @@
 // =====================================================
 // КОНСТАНТЫ
 // =====================================================
-const STORAGE_FORM = "sg_form_v1";
-const STORAGE_HISTORY = "sg_history_v1";
+const STORAGE_FORM = "sg_form_v2";
+const STORAGE_HISTORY = "sg_history_v2";
 const MAX_HISTORY = 10;
 
 // =====================================================
@@ -464,22 +427,13 @@ function recalc(source) {
     }
   }
 
-  // ==== ОТОБРАЖЕНИЕ ====
-  const b1 = document.getElementById("b1");
-  b1.textContent = dateMade ? formatDate(dateMade) : "—";
-  b1.classList.toggle("empty", !dateMade);
-
-  const b2 = document.getElementById("b2");
-  b2.textContent = (!isNaN(shelfLife) && shelfLife > 0) ? shelfLife : "—";
-  b2.classList.toggle("empty", isNaN(shelfLife) || shelfLife <= 0);
-
-  const b3 = document.getElementById("b3");
-  b3.textContent = goodUntil ? formatDate(goodUntil) : "—";
-  b3.classList.toggle("empty", !goodUntil);
-
-  const b4 = document.getElementById("b4");
-  b4.textContent = orderDate ? formatDate(orderDate) : "—";
-  b4.classList.toggle("empty", !orderDate);
+  // ==== ПОДСКАЗКА ПОД ПОЛЕМ "ГОДЕН ДО" ====
+  const hint = document.getElementById("b3-hint");
+  if (goodUntil) {
+    hint.innerHTML = `Годен до: <strong>${formatDate(goodUntil)}</strong>`;
+  } else {
+    hint.textContent = "Введите дату изготовления и срок — рассчитается автоматически";
+  }
 
   // ==== ДЕЙСТВИЕ ====
   let action = "";
@@ -514,14 +468,12 @@ function recalc(source) {
   else if (action === "Частично компенсируем") b5.classList.add("partial");
   else if (action === "Не компенсируем")       b5.classList.add("nokomp");
 
-  // Автосохранение формы
   saveForm();
-
   isUpdating = false;
 }
 
 // =====================================================
-// АВТОСОХРАНЕНИЕ ФОРМЫ
+// СОХРАНЕНИЕ ФОРМЫ
 // =====================================================
 function saveForm() {
   const data = {
@@ -530,9 +482,7 @@ function saveForm() {
     c3: document.getElementById("c3").value,
     c4: document.getElementById("c4").value
   };
-  try {
-    localStorage.setItem(STORAGE_FORM, JSON.stringify(data));
-  } catch (e) { /* приватный режим */ }
+  try { localStorage.setItem(STORAGE_FORM, JSON.stringify(data)); } catch (e) {}
 }
 
 function loadForm() {
@@ -545,7 +495,7 @@ function loadForm() {
     document.getElementById("c3").value = data.c3 || "";
     document.getElementById("c4").value = data.c4 || "";
     recalc("c1");
-  } catch (e) { /* ignore */ }
+  } catch (e) {}
 }
 
 // =====================================================
@@ -559,9 +509,7 @@ function getHistory() {
 }
 
 function setHistory(arr) {
-  try {
-    localStorage.setItem(STORAGE_HISTORY, JSON.stringify(arr));
-  } catch (e) { /* ignore */ }
+  try { localStorage.setItem(STORAGE_HISTORY, JSON.stringify(arr)); } catch (e) {}
 }
 
 function saveToHistory() {
@@ -578,20 +526,14 @@ function saveToHistory() {
   const action = document.getElementById("b5").textContent;
   const daysLeft = document.getElementById("b6").textContent;
 
-  const item = {
-    c1, c2, c3, c4,
-    action,
-    daysLeft,
-    savedAt: Date.now()
-  };
+  const item = { c1, c2, c3, c4, action, daysLeft, savedAt: Date.now() };
 
   const history = getHistory();
-  history.unshift(item); // в начало
+  history.unshift(item);
   while (history.length > MAX_HISTORY) history.pop();
   setHistory(history);
   renderHistory();
 
-  // Визуальный отклик
   const btn = event.target;
   const orig = btn.textContent;
   btn.textContent = "✅ Сохранено!";
@@ -618,10 +560,14 @@ function renderHistory() {
     if (item.action === "Компенсируем") actionClass = "komp";
     else if (item.action === "Частично компенсируем") actionClass = "partial";
 
+    // Формат отображения даты — из YYYY-MM-DD в DD.MM.YYYY
+    const d1 = item.c1 ? item.c1.split("-").reverse().join(".") : "—";
+    const d4 = item.c4 ? item.c4.split("-").reverse().join(".") : "—";
+
     return `
       <div class="history-item" onclick="loadFromHistory(${idx})">
         <div class="history-info">
-          <div class="history-main">${item.c1} → ${item.c2} дн → ${item.c4}</div>
+          <div class="history-main">${d1} → ${item.c2} дн → ${d4}</div>
           <div class="history-sub">Сохранено: ${timeStr}</div>
         </div>
         <div class="history-action ${actionClass}">
@@ -643,7 +589,6 @@ function loadFromHistory(idx) {
   document.getElementById("c4").value = item.c4 || "";
   recalc("c1");
 
-  // Прокрутить наверх
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -654,7 +599,7 @@ function clearHistory() {
 }
 
 // =====================================================
-// ОЧИСТКА
+// ОЧИСТКА ФОРМЫ
 // =====================================================
 function resetAll() {
   document.getElementById("c1").value = "";
@@ -696,12 +641,12 @@ document.getElementById("installBanner").addEventListener("click", async () => {
 // =====================================================
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js").catch(() => { /* ignore */ });
+    navigator.serviceWorker.register("sw.js").catch(() => {});
   });
 }
 
 // =====================================================
-// ИНИЦИАЛИЗАЦИЯ
+// СТАРТ
 // =====================================================
 window.addEventListener("DOMContentLoaded", () => {
   loadForm();
