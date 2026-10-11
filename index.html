@@ -6,13 +6,12 @@
 <meta name="theme-color" content="#1a73e8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Срок годности">
+<meta name="apple-mobile-web-app-title" content="Калькулятор">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
-<title>Расчёт срока годности</title>
+<title>Калькулятор</title>
 <style>
-  /* ============ ТЕМЫ ============ */
   :root {
     --bg: #f5f5f5;
     --card: #ffffff;
@@ -25,6 +24,7 @@
     --primary-hover: #1558b0;
     --primary-soft: #e8f0fe;
     --error: #d93025;
+    --success: #1e6b2c;
     --komp-bg: #f4cccc;
     --komp-text: #a50e0e;
     --partial-bg: #fff2cc;
@@ -47,6 +47,7 @@
       --primary-hover: #a8c7fa;
       --primary-soft: #1a3a5c;
       --error: #f28b82;
+      --success: #b6e3bd;
       --komp-bg: #5c2626;
       --komp-text: #f8bbbb;
       --partial-bg: #5c4a1a;
@@ -69,6 +70,7 @@
     --primary-hover: #a8c7fa;
     --primary-soft: #1a3a5c;
     --error: #f28b82;
+    --success: #b6e3bd;
     --komp-bg: #5c2626;
     --komp-text: #f8bbbb;
     --partial-bg: #5c4a1a;
@@ -90,6 +92,7 @@
     --primary-hover: #1558b0;
     --primary-soft: #e8f0fe;
     --error: #d93025;
+    --success: #1e6b2c;
     --komp-bg: #f4cccc;
     --komp-text: #a50e0e;
     --partial-bg: #fff2cc;
@@ -126,14 +129,17 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
+    gap: 8px;
   }
 
   h1 {
-    font-size: 20px;
+    font-size: 18px;
     margin: 0;
     color: var(--primary);
     font-weight: 600;
+    flex: 1;
+    min-width: 0;
   }
 
   h2 {
@@ -143,6 +149,57 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+  }
+
+  /* ============ ПЕРЕКЛЮЧАТЕЛЬ СТРАНИЦ ============ */
+  .page-tabs {
+    display: flex;
+    background: var(--display-bg);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 16px;
+    gap: 4px;
+  }
+
+  .page-tab {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 12px 8px;
+    border-radius: 9px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s;
+    font-family: inherit;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .page-tab.active {
+    background: var(--card);
+    color: var(--primary);
+    box-shadow: 0 1px 6px rgba(0,0,0,0.12);
+  }
+
+  .page-tab:active { transform: scale(0.97); }
+
+  /* ============ СТРАНИЦЫ ============ */
+  .page {
+    display: none;
+    animation: pageIn 0.25s ease-out;
+  }
+
+  .page.active {
+    display: block;
+  }
+
+  @keyframes pageIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
   /* ============ ТЕМА ============ */
@@ -158,8 +215,8 @@
   .theme-btn {
     border: none;
     background: transparent;
-    font-size: 16px;
-    padding: 6px 10px;
+    font-size: 15px;
+    padding: 6px 8px;
     border-radius: 16px;
     cursor: pointer;
     transition: all 0.2s;
@@ -189,7 +246,8 @@
   }
 
   input[type="date"],
-  input[type="number"] {
+  input[type="number"],
+  input[type="text"] {
     width: 100%;
     padding: 14px 12px;
     border: 1.5px solid var(--border);
@@ -205,10 +263,7 @@
     min-height: 50px;
   }
 
-  input[type="date"]:focus,
-  input[type="number"]:focus {
-    border-color: var(--primary);
-  }
+  input:focus { border-color: var(--primary); }
 
   input[type="date"]::-webkit-calendar-picker-indicator {
     cursor: pointer;
@@ -216,8 +271,7 @@
     padding: 4px;
   }
 
-  :root[data-theme="dark"] input[type="date"],
-  :root[data-theme="dark"] input[type="number"] { color-scheme: dark; }
+  :root[data-theme="dark"] input { color-scheme: dark; }
 
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
@@ -279,9 +333,7 @@
   .action-box.partial { background: var(--partial-bg); color: var(--partial-text); }
   .action-box.nokomp { background: var(--nokomp-bg); color: var(--nokomp-text); }
 
-  .action-box.flash {
-    animation: actionFlash 0.4s ease-out;
-  }
+  .action-box.flash { animation: actionFlash 0.4s ease-out; }
 
   @keyframes actionFlash {
     0%   { transform: scale(1); }
@@ -309,9 +361,7 @@
     transition: color 0.3s;
   }
 
-  .days-box strong.bump {
-    animation: numberBump 0.3s ease-out;
-  }
+  .days-box strong.bump { animation: numberBump 0.3s ease-out; }
 
   @keyframes numberBump {
     0%   { transform: scale(1); opacity: 0.4; }
@@ -427,6 +477,60 @@
   .install-banner.show { display: block; }
   .install-banner:active { opacity: 0.85; }
 
+  /* ============ РЕЗУЛЬТАТ РАЗНИЦЫ МАСС ============ */
+  .percent-result {
+    margin-top: 8px;
+    padding: 24px 18px;
+    border-radius: 14px;
+    text-align: center;
+    background: var(--display-bg);
+    transition: background 0.4s, transform 0.3s;
+  }
+
+  .percent-result.flash { animation: actionFlash 0.4s ease-out; }
+
+  .percent-value {
+    font-size: 42px;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -1px;
+    transition: color 0.4s;
+  }
+
+  .percent-value.positive { color: var(--error); }      /* увеличилось */
+  .percent-value.negative { color: var(--success); }    /* уменьшилось */
+  .percent-value.zero     { color: var(--text-secondary); } /* без изменений */
+
+  .percent-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+
+  .percent-detail {
+    margin-top: 16px;
+    padding: 12px;
+    background: var(--card);
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .percent-detail strong { color: var(--text); }
+
+  .formula-hint {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: center;
+    font-style: italic;
+    opacity: 0.8;
+  }
+
   /* ============ АНИМАЦИИ ============ */
   @keyframes toastIn {
     from { opacity: 0; transform: translate(-50%, 12px); }
@@ -447,86 +551,153 @@
     📲 Установить приложение на телефон
   </div>
 
-  <div class="card">
-    <div class="header-row">
-      <h1>📦 Расчёт срока годности</h1>
-      <div class="theme-toggle">
-        <button class="theme-btn" data-theme="auto"  title="Авто">🌗</button>
-        <button class="theme-btn" data-theme="light" title="Светлая">☀️</button>
-        <button class="theme-btn" data-theme="dark"  title="Тёмная">🌙</button>
-      </div>
-    </div>
-
-    <!-- Дата изготовления -->
-    <div class="field">
-      <label>Дата изготовления</label>
-      <input type="date" id="c1">
-      <div class="quick-btns">
-        <button class="quick-btn" onclick="setToday('c1')">Сегодня</button>
-        <button class="quick-btn" onclick="shiftDate('c1', -1)">−1 д</button>
-        <button class="quick-btn" onclick="shiftDate('c1', -7)">−7 д</button>
-      </div>
-    </div>
-
-    <!-- Срок хранения -->
-    <div class="field">
-      <label>Срок хранения (дней)</label>
-      <input type="number" id="c2" placeholder="дней" min="1" max="9999">
-      <div class="quick-btns">
-        <button class="quick-btn" onclick="setShelf(3)">3 дн</button>
-        <button class="quick-btn" onclick="setShelf(7)">7 дн</button>
-        <button class="quick-btn" onclick="setShelf(14)">14 дн</button>
-        <button class="quick-btn" onclick="setShelf(30)">30 дн</button>
-      </div>
-    </div>
-
-    <!-- Годен до -->
-    <div class="field">
-      <label>Годен до</label>
-      <input type="date" id="c3">
-      <div class="quick-btns">
-        <button class="quick-btn" onclick="setToday('c3')">Сегодня</button>
-        <button class="quick-btn" onclick="shiftDate('c3', 7)">+7 д</button>
-        <button class="quick-btn" onclick="shiftDate('c3', 30)">+30 д</button>
-      </div>
-      <div class="field-hint" id="b3-hint">Введите дату изготовления и срок — рассчитается автоматически</div>
-    </div>
-
-  <!-- Дата заказа -->
-  <div class="field">
-    <label>Дата заказа</label>
-    <input type="date" id="c4">
-    <div class="quick-btns">
-      <button class="quick-btn" onclick="setToday('c4')">Сегодня</button>
-      <button class="quick-btn" onclick="shiftDate('c4', -1)">−1 д</button>
-    </div>
+  <!-- ============ ПЕРЕКЛЮЧАТЕЛЬ СТРАНИЦ ============ -->
+  <div class="page-tabs">
+    <button class="page-tab active" data-page="page1">📦 Срок годности</button>
+    <button class="page-tab" data-page="page2">⚖️ Разница масс</button>
   </div>
 
-    <div class="action-box" id="b5">—</div>
+  <!-- ============================================================ -->
+  <!-- СТРАНИЦА 1 — СРОК ГОДНОСТИ                                    -->
+  <!-- ============================================================ -->
+  <div class="page active" id="page1">
 
-    <div class="days-box">
-      Дней до конца срока
-      <strong id="b6">—</strong>
+    <div class="card">
+      <div class="header-row">
+        <h1>📦 Расчёт срока годности</h1>
+        <div class="theme-toggle">
+          <button class="theme-btn" data-theme="auto"  title="Авто">🌗</button>
+          <button class="theme-btn" data-theme="light" title="Светлая">☀️</button>
+          <button class="theme-btn" data-theme="dark"  title="Тёмная">🌙</button>
+        </div>
+      </div>
+
+      <!-- Дата изготовления -->
+      <div class="field">
+        <label>Дата изготовления</label>
+        <input type="date" id="c1">
+        <div class="quick-btns">
+          <button class="quick-btn" onclick="setToday('c1')">Сегодня</button>
+          <button class="quick-btn" onclick="shiftDate('c1', -1)">−1 д</button>
+          <button class="quick-btn" onclick="shiftDate('c1', -7)">−7 д</button>
+        </div>
+      </div>
+
+      <!-- Срок хранения -->
+      <div class="field">
+        <label>Срок хранения (дней)</label>
+        <input type="number" id="c2" placeholder="дней" min="1" max="9999">
+        <div class="quick-btns">
+          <button class="quick-btn" onclick="setShelf(3)">3 дн</button>
+          <button class="quick-btn" onclick="setShelf(7)">7 дн</button>
+          <button class="quick-btn" onclick="setShelf(14)">14 дн</button>
+          <button class="quick-btn" onclick="setShelf(30)">30 дн</button>
+        </div>
+      </div>
+
+      <!-- Годен до -->
+      <div class="field">
+        <label>Годен до</label>
+        <input type="date" id="c3">
+        <div class="quick-btns">
+          <button class="quick-btn" onclick="setToday('c3')">Сегодня</button>
+          <button class="quick-btn" onclick="shiftDate('c3', 7)">+7 д</button>
+          <button class="quick-btn" onclick="shiftDate('c3', 30)">+30 д</button>
+        </div>
+        <div class="field-hint" id="b3-hint">Введите дату изготовления и срок — рассчитается автоматически</div>
+      </div>
+
+      <!-- Дата заказа -->
+      <div class="field">
+        <label>Дата заказа</label>
+        <input type="date" id="c4">
+        <div class="quick-btns">
+          <button class="quick-btn" onclick="setToday('c4')">Сегодня</button>
+          <button class="quick-btn" onclick="shiftDate('c4', -1)">−1 д</button>
+          <button class="quick-btn" onclick="shiftDate('c4', -7)">−7 д</button>
+        </div>
+      </div>
+
+      <div class="action-box" id="b5">—</div>
+
+      <div class="days-box">
+        Дней до конца срока
+        <strong id="b6">—</strong>
+      </div>
+
+      <button class="btn btn-primary" style="margin-top: 20px;"
+              onclick="saveToHistory(this)">
+        💾 Сохранить в историю
+      </button>
+
+      <button class="btn btn-secondary" onclick="resetAll()">
+        🗑 Очистить форму
+      </button>
     </div>
 
-    <button class="btn btn-primary" style="margin-top: 20px;"
-            onclick="saveToHistory(this)">
-      💾 Сохранить в историю
-    </button>
+    <div class="card">
+      <h2>📋 История (последние 10)</h2>
+      <div id="historyList">
+        <div class="history-empty">Пока ничего нет</div>
+      </div>
+      <button class="btn btn-clear-history" onclick="clearHistory()">
+        Очистить историю
+      </button>
+    </div>
 
-    <button class="btn btn-secondary" onclick="resetAll()">
-      🗑 Очистить форму
-    </button>
   </div>
 
-  <div class="card">
-    <h2>📋 История (последние 10)</h2>
-    <div id="historyList">
-      <div class="history-empty">Пока ничего нет</div>
+  <!-- ============================================================ -->
+  <!-- СТРАНИЦА 2 — РАЗНИЦА МАСС                                     -->
+  <!-- ============================================================ -->
+  <div class="page" id="page2">
+
+    <div class="card">
+      <div class="header-row">
+        <h1>⚖️ Разница масс</h1>
+      </div>
+
+      <div class="field">
+        <label>Исходная масса</label>
+        <input type="number" id="m1" placeholder="например, 100" step="any" min="0">
+        <div class="quick-btns">
+          <button class="quick-btn" onclick="clearMass('m1')">Очистить</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Новая масса</label>
+        <input type="number" id="m2" placeholder="например, 95" step="any" min="0">
+        <div class="quick-btns">
+          <button class="quick-btn" onclick="clearMass('m2')">Очистить</button>
+          <button class="quick-btn" onclick="copyMass()">= как исходная</button>
+        </div>
+      </div>
+
+      <!-- Результат -->
+      <div class="percent-result" id="percent-result">
+        <div class="percent-value" id="percent-value">—</div>
+        <div class="percent-label" id="percent-label">изменение массы</div>
+      </div>
+
+      <!-- Детали расчёта -->
+      <div class="percent-detail" id="percent-detail" style="display: none;">
+        <div>Исходная масса: <strong id="det-m1">—</strong></div>
+        <div>Новая масса: <strong id="det-m2">—</strong></div>
+        <div>Разница: <strong id="det-diff">—</strong></div>
+        <div>Формула: <strong>((Новое − Исходное) / |Исходное|) × 100%</strong></div>
+      </div>
+
+      <div class="formula-hint">
+        % = ((Новое − Исходное) / |Исходное|) × 100%
+      </div>
+
+      <button class="btn btn-secondary" style="margin-top: 20px;"
+              onclick="resetMass()">
+        🗑 Очистить форму
+      </button>
     </div>
-    <button class="btn btn-clear-history" onclick="clearHistory()">
-      Очистить историю
-    </button>
+
   </div>
 
 </div>
@@ -538,6 +709,8 @@
 const STORAGE_FORM = "sg_form_v3";
 const STORAGE_HISTORY = "sg_history_v3";
 const STORAGE_THEME = "sg_theme_v1";
+const STORAGE_MASS = "sg_mass_v1";
+const STORAGE_PAGE = "sg_page_v1";
 const MAX_HISTORY = 10;
 
 // =====================================================
@@ -570,9 +743,6 @@ function todayDate() {
   return new Date(n.getFullYear(), n.getMonth(), n.getDate());
 }
 
-// =====================================================
-// DEBOUNCE — защита от слишком частых вызовов
-// =====================================================
 function debounce(fn, delay) {
   let timer = null;
   return function (...args) {
@@ -582,7 +752,32 @@ function debounce(fn, delay) {
 }
 
 // =====================================================
-// БЫСТРЫЕ ДЕЙСТВИЯ
+// ПЕРЕКЛЮЧАТЕЛЬ СТРАНИЦ
+// =====================================================
+function switchPage(pageId) {
+  document.querySelectorAll(".page").forEach((p) => {
+    p.classList.toggle("active", p.id === pageId);
+  });
+
+  document.querySelectorAll(".page-tab").forEach((t) => {
+    t.classList.toggle("active", t.dataset.page === pageId);
+  });
+
+  try { localStorage.setItem(STORAGE_PAGE, pageId); } catch (e) {}
+}
+
+document.querySelectorAll(".page-tab").forEach((tab) => {
+  tab.addEventListener("click", () => switchPage(tab.dataset.page));
+});
+
+function loadPage() {
+  let page = "page1";
+  try { page = localStorage.getItem(STORAGE_PAGE) || "page1"; } catch (e) {}
+  switchPage(page);
+}
+
+// =====================================================
+// ============ СТРАНИЦА 1 — СРОК ГОДНОСТИ ============
 // =====================================================
 function setToday(id) {
   const el = document.getElementById(id);
@@ -608,9 +803,6 @@ function setShelf(n) {
   saveForm();
 }
 
-// =====================================================
-// ПЕРЕСЧЁТ
-// =====================================================
 let isUpdating = false;
 
 function recalc(source) {
@@ -627,24 +819,16 @@ function recalc(source) {
   let goodUntil = dateFromInput(c3El.value);
   const orderDate = dateFromInput(c4El.value);
 
-  // ==== ЛОГИКА СИНХРОНИЗАЦИИ ====
-  //
-  // ВАЖНО: пересчёт C3 при смене C1 или C2 срабатывает ВСЕГДА,
-  // если есть и дата изготовления, и срок хранения.
-  //
+  // СИНХРОНИЗАЦИЯ
   if (source === "load") {
-    // При загрузке — ничего не пересчитываем
+    // ничего
   } else if (source === "c1" || source === "c2") {
-    // Изменение даты изготовления или срока → всегда пересчитываем "Годен до"
     if (dateMade && !isNaN(shelfLife) && shelfLife > 0) {
       goodUntil = new Date(dateMade);
       goodUntil.setDate(goodUntil.getDate() + shelfLife - 1);
       c3El.value = dateToInput(goodUntil);
-    } else if (!shelfLife || shelfLife <= 0) {
-      // Если срок пустой — не трогаем C3 (пользователь сам вводит)
     }
   } else if (source === "c3") {
-    // Изменение "Годен до" → пересчитываем срок хранения
     if (dateMade && goodUntil) {
       const diff = Math.round((goodUntil - dateMade) / 86400000) + 1;
       if (diff > 0) {
@@ -656,9 +840,8 @@ function recalc(source) {
       }
     }
   }
-  // source === "c4" → ничего не пересчитываем, только отображение
 
-  // ==== ПОДСКАЗКА ПОД "ГОДЕН ДО" ====
+  // ПОДСКАЗКА
   const hint = document.getElementById("b3-hint");
   if (goodUntil) {
     hint.innerHTML = `Годен до: <strong>${formatDate(goodUntil)}</strong>`;
@@ -666,7 +849,7 @@ function recalc(source) {
     hint.textContent = "Введите дату изготовления и срок — рассчитается автоматически";
   }
 
-  // ==== ДЕЙСТВИЕ ====
+  // ДЕЙСТВИЕ
   let action = "";
   let daysLeftText = "—";
 
@@ -690,7 +873,7 @@ function recalc(source) {
     }
   }
 
-  // ==== АНИМАЦИЯ ДНЕЙ ====
+  // АНИМАЦИЯ ДНЕЙ
   const b6El = document.getElementById("b6");
   if (b6El.textContent !== String(daysLeftText)) {
     b6El.textContent = daysLeftText;
@@ -699,7 +882,7 @@ function recalc(source) {
     b6El.classList.add("bump");
   }
 
-  // ==== АНИМАЦИЯ ДЕЙСТВИЯ ====
+  // АНИМАЦИЯ ДЕЙСТВИЯ
   const b5 = document.getElementById("b5");
   if (b5.textContent !== (action || "—")) {
     b5.textContent = action || "—";
@@ -715,12 +898,9 @@ function recalc(source) {
   isUpdating = false;
 }
 
-// Debounced версия для input
 const recalcDebounced = debounce((source) => recalc(source), 60);
 
-// =====================================================
 // СОХРАНЕНИЕ ФОРМЫ
-// =====================================================
 function saveForm() {
   const data = {
     c1: document.getElementById("c1").value,
@@ -744,9 +924,7 @@ function loadForm() {
   } catch (e) {}
 }
 
-// =====================================================
 // ИСТОРИЯ
-// =====================================================
 function getHistory() {
   try {
     const raw = localStorage.getItem(STORAGE_HISTORY);
@@ -847,9 +1025,6 @@ function clearHistory() {
   });
 }
 
-// =====================================================
-// ОЧИСТКА ФОРМЫ
-// =====================================================
 function resetAll() {
   document.getElementById("c1").value = "";
   document.getElementById("c2").value = "";
@@ -859,15 +1034,133 @@ function resetAll() {
   saveForm();
 }
 
-// =====================================================
-// СОБЫТИЯ — подписка на change И input для всех полей
-// =====================================================
+// СОБЫТИЯ СТРАНИЦЫ 1
 ["c1", "c2", "c3", "c4"].forEach((id) => {
   const el = document.getElementById(id);
-  // change — мгновенно (закрытие календаря, Enter)
   el.addEventListener("change", () => recalc(id));
-  // input — с небольшой задержкой (для мгновенного отклика)
   el.addEventListener("input", () => recalcDebounced(id));
+});
+
+// =====================================================
+// ============ СТРАНИЦА 2 — РАЗНИЦА МАСС ==============
+// =====================================================
+let isMassUpdating = false;
+
+function recalcMass() {
+  if (isMassUpdating) return;
+  isMassUpdating = true;
+
+  const m1El = document.getElementById("m1");
+  const m2El = document.getElementById("m2");
+
+  const m1 = m1El.value === "" ? NaN : Number(m1El.value);
+  const m2 = m2El.value === "" ? NaN : Number(m2El.value);
+
+  const resultEl = document.getElementById("percent-result");
+  const valueEl  = document.getElementById("percent-value");
+  const labelEl  = document.getElementById("percent-label");
+  const detailEl = document.getElementById("percent-detail");
+
+  // Если не заполнено или исходное = 0 — показываем "—"
+  if (isNaN(m1) || isNaN(m2)) {
+    valueEl.textContent = "—";
+    valueEl.className = "percent-value";
+    labelEl.textContent = "изменение массы";
+    detailEl.style.display = "none";
+    saveMass();
+    isMassUpdating = false;
+    return;
+  }
+
+  if (m1 === 0) {
+    valueEl.textContent = "∞";
+    valueEl.className = "percent-value zero";
+    labelEl.textContent = "исходная масса = 0";
+    detailEl.style.display = "none";
+    saveMass();
+    isMassUpdating = false;
+    return;
+  }
+
+  // ФОРМУЛА: % = ((Новое − Исходное) / |Исходное|) × 100%
+  const diff = m2 - m1;
+  const percent = (diff / Math.abs(m1)) * 100;
+
+  // Отображение процента
+  const sign = percent > 0 ? "+" : "";
+  valueEl.textContent = sign + percent.toFixed(2) + "%";
+  valueEl.classList.remove("positive", "negative", "zero", "flash");
+
+  if (percent > 0.001) {
+    valueEl.classList.add("positive");
+    labelEl.textContent = "масса увеличилась";
+  } else if (percent < -0.001) {
+    valueEl.classList.add("negative");
+    labelEl.textContent = "масса уменьшилась";
+  } else {
+    valueEl.classList.add("zero");
+    labelEl.textContent = "масса не изменилась";
+  }
+
+  // Анимация
+  void valueEl.offsetWidth;
+  resultEl.classList.remove("flash");
+  void resultEl.offsetWidth;
+  resultEl.classList.add("flash");
+
+  // Детали
+  detailEl.style.display = "block";
+  document.getElementById("det-m1").textContent = m1;
+  document.getElementById("det-m2").textContent = m2;
+  const diffSign = diff > 0 ? "+" : "";
+  document.getElementById("det-diff").textContent = diffSign + diff.toFixed(4).replace(/\.?0+$/, "");
+
+  saveMass();
+  isMassUpdating = false;
+}
+
+function clearMass(id) {
+  document.getElementById(id).value = "";
+  recalcMass();
+}
+
+function copyMass() {
+  const m1 = document.getElementById("m1").value;
+  document.getElementById("m2").value = m1;
+  recalcMass();
+}
+
+function resetMass() {
+  document.getElementById("m1").value = "";
+  document.getElementById("m2").value = "";
+  recalcMass();
+  saveMass();
+}
+
+function saveMass() {
+  const data = {
+    m1: document.getElementById("m1").value,
+    m2: document.getElementById("m2").value
+  };
+  try { localStorage.setItem(STORAGE_MASS, JSON.stringify(data)); } catch (e) {}
+}
+
+function loadMass() {
+  try {
+    const raw = localStorage.getItem(STORAGE_MASS);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    document.getElementById("m1").value = data.m1 || "";
+    document.getElementById("m2").value = data.m2 || "";
+    recalcMass();
+  } catch (e) {}
+}
+
+// СОБЫТИЯ СТРАНИЦЫ 2
+["m1", "m2"].forEach((id) => {
+  const el = document.getElementById(id);
+  el.addEventListener("input", () => recalcMass());
+  el.addEventListener("change", () => recalcMass());
 });
 
 // =====================================================
@@ -889,9 +1182,7 @@ function applyTheme(theme) {
 
 function loadTheme() {
   let theme = "auto";
-  try {
-    theme = localStorage.getItem(STORAGE_THEME) || "auto";
-  } catch (e) {}
+  try { theme = localStorage.getItem(STORAGE_THEME) || "auto"; } catch (e) {}
   applyTheme(theme);
 }
 
@@ -900,7 +1191,7 @@ document.querySelectorAll(".theme-btn").forEach((btn) => {
 });
 
 // =====================================================
-// TOAST
+// TOAST + CONFIRM
 // =====================================================
 function showToast(message) {
   const existing = document.getElementById("toast");
@@ -934,9 +1225,6 @@ function showToast(message) {
   }, 2500);
 }
 
-// =====================================================
-// CONFIRM
-// =====================================================
 function showConfirm(message, onConfirm) {
   const overlay = document.createElement("div");
   overlay.style.cssText = `
@@ -1012,7 +1300,9 @@ if ("serviceWorker" in navigator) {
 // =====================================================
 window.addEventListener("DOMContentLoaded", () => {
   loadTheme();
+  loadPage();
   loadForm();
+  loadMass();
   renderHistory();
 });
 </script>
