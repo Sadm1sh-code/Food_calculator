@@ -1,4 +1,4 @@
-const CACHE_NAME = "sg-cache-v1";
+const CACHE_NAME = "pc-cache-v1";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
