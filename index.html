@@ -12,6 +12,7 @@
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <title>Расчёт срока годности</title>
 <style>
+  /* ============ ТЕМЫ ============ */
   :root {
     --bg: #f5f5f5;
     --card: #ffffff;
@@ -22,6 +23,7 @@
     --display-bg: #f1f3f4;
     --primary: #1a73e8;
     --primary-hover: #1558b0;
+    --primary-soft: #e8f0fe;
     --error: #d93025;
     --komp-bg: #f4cccc;
     --komp-text: #a50e0e;
@@ -29,10 +31,11 @@
     --partial-text: #8a6100;
     --nokomp-bg: #d9ead3;
     --nokomp-text: #1e6b2c;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
   }
 
   @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
       --bg: #1e1e1e;
       --card: #2a2a2a;
       --text: #e8eaed;
@@ -42,6 +45,7 @@
       --display-bg: #35363a;
       --primary: #8ab4f8;
       --primary-hover: #a8c7fa;
+      --primary-soft: #1a3a5c;
       --error: #f28b82;
       --komp-bg: #5c2626;
       --komp-text: #f8bbbb;
@@ -49,8 +53,50 @@
       --partial-text: #ffe4a8;
       --nokomp-bg: #2a4a2e;
       --nokomp-text: #b6e3bd;
+      --shadow: 0 2px 12px rgba(0,0,0,0.3);
     }
-    input[type="date"] { color-scheme: dark; }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #1e1e1e;
+    --card: #2a2a2a;
+    --text: #e8eaed;
+    --text-secondary: #9aa0a6;
+    --border: #3c4043;
+    --input-bg: #3c4043;
+    --display-bg: #35363a;
+    --primary: #8ab4f8;
+    --primary-hover: #a8c7fa;
+    --primary-soft: #1a3a5c;
+    --error: #f28b82;
+    --komp-bg: #5c2626;
+    --komp-text: #f8bbbb;
+    --partial-bg: #5c4a1a;
+    --partial-text: #ffe4a8;
+    --nokomp-bg: #2a4a2e;
+    --nokomp-text: #b6e3bd;
+    --shadow: 0 2px 12px rgba(0,0,0,0.3);
+  }
+
+  :root[data-theme="light"] {
+    --bg: #f5f5f5;
+    --card: #ffffff;
+    --text: #202124;
+    --text-secondary: #5f6368;
+    --border: #dadce0;
+    --input-bg: #ffffff;
+    --display-bg: #f1f3f4;
+    --primary: #1a73e8;
+    --primary-hover: #1558b0;
+    --primary-soft: #e8f0fe;
+    --error: #d93025;
+    --komp-bg: #f4cccc;
+    --komp-text: #a50e0e;
+    --partial-bg: #fff2cc;
+    --partial-text: #8a6100;
+    --nokomp-bg: #d9ead3;
+    --nokomp-text: #1e6b2c;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -62,26 +108,30 @@
     padding: 16px;
     color: var(--text);
     min-height: 100vh;
-    transition: background 0.2s, color 0.2s;
+    transition: background 0.3s, color 0.3s;
   }
 
-  .container {
-    max-width: 520px;
-    margin: 0 auto;
-  }
+  .container { max-width: 520px; margin: 0 auto; }
 
   .card {
     background: var(--card);
     border-radius: 14px;
     padding: 20px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    box-shadow: var(--shadow);
     margin-bottom: 16px;
+    transition: background 0.3s, box-shadow 0.3s;
+  }
+
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
   }
 
   h1 {
     font-size: 20px;
-    margin: 0 0 20px;
-    text-align: center;
+    margin: 0;
     color: var(--primary);
     font-weight: 600;
   }
@@ -95,6 +145,37 @@
     letter-spacing: 0.5px;
   }
 
+  /* ============ ТЕМА ============ */
+  .theme-toggle {
+    display: flex;
+    background: var(--display-bg);
+    border-radius: 20px;
+    padding: 3px;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  .theme-btn {
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    padding: 6px 10px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    line-height: 1;
+    color: var(--text-secondary);
+  }
+
+  .theme-btn.active {
+    background: var(--card);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    transform: scale(1.05);
+  }
+
+  .theme-btn:active { transform: scale(0.95); }
+
+  /* ============ ПОЛЯ ============ */
   .field { margin-bottom: 18px; }
 
   label {
@@ -118,7 +199,7 @@
     background: var(--input-bg);
     color: var(--text);
     font-family: inherit;
-    transition: border-color 0.15s;
+    transition: border-color 0.15s, background 0.3s, color 0.3s;
     -webkit-appearance: none;
     appearance: none;
     min-height: 50px;
@@ -135,9 +216,38 @@
     padding: 4px;
   }
 
+  :root[data-theme="dark"] input[type="date"],
+  :root[data-theme="dark"] input[type="number"] { color-scheme: dark; }
+
   @media (prefers-color-scheme: dark) {
-    input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
+    :root:not([data-theme="light"]) input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
   }
+  :root[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
+
+  /* ============ БЫСТРЫЕ КНОПКИ ============ */
+  .quick-btns {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+
+  .quick-btn {
+    background: var(--primary-soft);
+    color: var(--primary);
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    flex-shrink: 0;
+  }
+
+  .quick-btn:hover { opacity: 0.85; }
+  .quick-btn:active { transform: scale(0.95); }
 
   .field-hint {
     margin-top: 6px;
@@ -151,6 +261,7 @@
     font-weight: 600;
   }
 
+  /* ============ ДЕЙСТВИЕ ============ */
   .action-box {
     margin-top: 8px;
     padding: 18px;
@@ -160,7 +271,7 @@
     font-weight: 700;
     background: var(--display-bg);
     color: var(--text-secondary);
-    transition: all 0.25s;
+    transition: background 0.4s, color 0.4s, transform 0.3s;
     letter-spacing: 0.3px;
   }
 
@@ -168,6 +279,17 @@
   .action-box.partial { background: var(--partial-bg); color: var(--partial-text); }
   .action-box.nokomp { background: var(--nokomp-bg); color: var(--nokomp-text); }
 
+  .action-box.flash {
+    animation: actionFlash 0.4s ease-out;
+  }
+
+  @keyframes actionFlash {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.04); }
+    100% { transform: scale(1); }
+  }
+
+  /* ============ ДНИ ============ */
   .days-box {
     margin-top: 16px;
     padding: 14px;
@@ -176,6 +298,7 @@
     text-align: center;
     font-size: 15px;
     color: var(--text-secondary);
+    transition: background 0.3s, color 0.3s;
   }
 
   .days-box strong {
@@ -183,8 +306,20 @@
     color: var(--primary);
     display: block;
     margin-top: 4px;
+    transition: color 0.3s;
   }
 
+  .days-box strong.bump {
+    animation: numberBump 0.3s ease-out;
+  }
+
+  @keyframes numberBump {
+    0%   { transform: scale(1); opacity: 0.4; }
+    50%  { transform: scale(1.15); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* ============ КНОПКИ ============ */
   .btn {
     display: block;
     width: 100%;
@@ -194,15 +329,13 @@
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background 0.15s, transform 0.1s;
     font-family: inherit;
   }
 
-  .btn-primary {
-    background: var(--primary);
-    color: #fff;
-  }
+  .btn:active { transform: scale(0.98); }
 
+  .btn-primary { background: var(--primary); color: #fff; }
   .btn-primary:active { background: var(--primary-hover); }
 
   .btn-secondary {
@@ -213,6 +346,7 @@
 
   .btn-secondary:active { opacity: 0.7; }
 
+  /* ============ ИСТОРИЯ ============ */
   .history-item {
     padding: 12px;
     border-radius: 8px;
@@ -224,15 +358,18 @@
     align-items: center;
     gap: 12px;
     cursor: pointer;
-    transition: opacity 0.15s;
+    transition: opacity 0.15s, transform 0.15s, background 0.3s;
+    animation: itemIn 0.3s ease-out;
   }
 
-  .history-item:active { opacity: 0.7; }
-
-  .history-info {
-    flex: 1;
-    min-width: 0;
+  @keyframes itemIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
+
+  .history-item:active { opacity: 0.7; transform: scale(0.98); }
+
+  .history-info { flex: 1; min-width: 0; }
 
   .history-main {
     font-weight: 600;
@@ -284,6 +421,7 @@
     font-size: 14px;
     cursor: pointer;
     font-weight: 600;
+    transition: opacity 0.15s;
   }
 
   .install-banner.show { display: block; }
@@ -310,28 +448,59 @@
   </div>
 
   <div class="card">
-    <h1>📦 Расчёт срока годности</h1>
+    <div class="header-row">
+      <h1>📦 Расчёт срока годности</h1>
+      <div class="theme-toggle">
+        <button class="theme-btn" data-theme="auto"  title="Авто">🌗</button>
+        <button class="theme-btn" data-theme="light" title="Светлая">☀️</button>
+        <button class="theme-btn" data-theme="dark"  title="Тёмная">🌙</button>
+      </div>
+    </div>
 
+    <!-- Дата изготовления -->
     <div class="field">
       <label>Дата изготовления</label>
       <input type="date" id="c1">
+      <div class="quick-btns">
+        <button class="quick-btn" onclick="setToday('c1')">Сегодня</button>
+        <button class="quick-btn" onclick="shiftDate('c1', -1)">−1 д</button>
+        <button class="quick-btn" onclick="shiftDate('c1', -7)">−7 д</button>
+      </div>
     </div>
 
+    <!-- Срок хранения -->
     <div class="field">
       <label>Срок хранения (дней)</label>
       <input type="number" id="c2" placeholder="дней" min="1" max="9999">
+      <div class="quick-btns">
+        <button class="quick-btn" onclick="setShelf(3)">3 дн</button>
+        <button class="quick-btn" onclick="setShelf(7)">7 дн</button>
+        <button class="quick-btn" onclick="setShelf(14)">14 дн</button>
+        <button class="quick-btn" onclick="setShelf(30)">30 дн</button>
+      </div>
     </div>
 
+    <!-- Годен до -->
     <div class="field">
       <label>Годен до</label>
       <input type="date" id="c3">
+      <div class="quick-btns">
+        <button class="quick-btn" onclick="setToday('c3')">Сегодня</button>
+        <button class="quick-btn" onclick="shiftDate('c3', 7)">+7 д</button>
+        <button class="quick-btn" onclick="shiftDate('c3', 30)">+30 д</button>
+      </div>
       <div class="field-hint" id="b3-hint">Введите дату изготовления и срок — рассчитается автоматически</div>
     </div>
 
-    <div class="field">
-      <label>Дата заказа</label>
-      <input type="date" id="c4">
+  <!-- Дата заказа -->
+  <div class="field">
+    <label>Дата заказа</label>
+    <input type="date" id="c4">
+    <div class="quick-btns">
+      <button class="quick-btn" onclick="setToday('c4')">Сегодня</button>
+      <button class="quick-btn" onclick="shiftDate('c4', -1)">−1 д</button>
     </div>
+  </div>
 
     <div class="action-box" id="b5">—</div>
 
@@ -366,8 +535,9 @@
 // =====================================================
 // КОНСТАНТЫ
 // =====================================================
-const STORAGE_FORM = "sg_form_v2";
-const STORAGE_HISTORY = "sg_history_v2";
+const STORAGE_FORM = "sg_form_v3";
+const STORAGE_HISTORY = "sg_history_v3";
+const STORAGE_THEME = "sg_theme_v1";
 const MAX_HISTORY = 10;
 
 // =====================================================
@@ -395,6 +565,49 @@ function dateToInput(d) {
   return yyyy + "-" + mm + "-" + dd;
 }
 
+function todayDate() {
+  const n = new Date();
+  return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+}
+
+// =====================================================
+// DEBOUNCE — защита от слишком частых вызовов
+// =====================================================
+function debounce(fn, delay) {
+  let timer = null;
+  return function (...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
+// =====================================================
+// БЫСТРЫЕ ДЕЙСТВИЯ
+// =====================================================
+function setToday(id) {
+  const el = document.getElementById(id);
+  el.value = dateToInput(todayDate());
+  recalc(id);
+  saveForm();
+}
+
+function shiftDate(id, days) {
+  const el = document.getElementById(id);
+  let base = dateFromInput(el.value);
+  if (!base) base = todayDate();
+  base.setDate(base.getDate() + days);
+  el.value = dateToInput(base);
+  recalc(id);
+  saveForm();
+}
+
+function setShelf(n) {
+  const el = document.getElementById("c2");
+  el.value = n;
+  recalc("c2");
+  saveForm();
+}
+
 // =====================================================
 // ПЕРЕСЧЁТ
 // =====================================================
@@ -414,17 +627,24 @@ function recalc(source) {
   let goodUntil = dateFromInput(c3El.value);
   const orderDate = dateFromInput(c4El.value);
 
-  // ==== СИНХРОНИЗАЦИЯ ====
-  // При загрузке — не пересчитываем, показываем как сохранили
+  // ==== ЛОГИКА СИНХРОНИЗАЦИИ ====
+  //
+  // ВАЖНО: пересчёт C3 при смене C1 или C2 срабатывает ВСЕГДА,
+  // если есть и дата изготовления, и срок хранения.
+  //
   if (source === "load") {
-    // ничего не делаем
+    // При загрузке — ничего не пересчитываем
   } else if (source === "c1" || source === "c2") {
+    // Изменение даты изготовления или срока → всегда пересчитываем "Годен до"
     if (dateMade && !isNaN(shelfLife) && shelfLife > 0) {
       goodUntil = new Date(dateMade);
       goodUntil.setDate(goodUntil.getDate() + shelfLife - 1);
       c3El.value = dateToInput(goodUntil);
+    } else if (!shelfLife || shelfLife <= 0) {
+      // Если срок пустой — не трогаем C3 (пользователь сам вводит)
     }
   } else if (source === "c3") {
+    // Изменение "Годен до" → пересчитываем срок хранения
     if (dateMade && goodUntil) {
       const diff = Math.round((goodUntil - dateMade) / 86400000) + 1;
       if (diff > 0) {
@@ -436,6 +656,7 @@ function recalc(source) {
       }
     }
   }
+  // source === "c4" → ничего не пересчитываем, только отображение
 
   // ==== ПОДСКАЗКА ПОД "ГОДЕН ДО" ====
   const hint = document.getElementById("b3-hint");
@@ -469,20 +690,33 @@ function recalc(source) {
     }
   }
 
-  document.getElementById("b6").textContent = daysLeftText;
+  // ==== АНИМАЦИЯ ДНЕЙ ====
+  const b6El = document.getElementById("b6");
+  if (b6El.textContent !== String(daysLeftText)) {
+    b6El.textContent = daysLeftText;
+    b6El.classList.remove("bump");
+    void b6El.offsetWidth;
+    b6El.classList.add("bump");
+  }
 
+  // ==== АНИМАЦИЯ ДЕЙСТВИЯ ====
   const b5 = document.getElementById("b5");
-  b5.textContent = action || "—";
-  b5.classList.remove("komp", "partial", "nokomp");
-  if (action === "Компенсируем")               b5.classList.add("komp");
-  else if (action === "Частично компенсируем") b5.classList.add("partial");
-  else if (action === "Не компенсируем")       b5.classList.add("nokomp");
+  if (b5.textContent !== (action || "—")) {
+    b5.textContent = action || "—";
+    b5.classList.remove("komp", "partial", "nokomp", "flash");
+    void b5.offsetWidth;
+    if (action === "Компенсируем")               b5.classList.add("komp");
+    else if (action === "Частично компенсируем") b5.classList.add("partial");
+    else if (action === "Не компенсируем")       b5.classList.add("nokomp");
+    if (action) b5.classList.add("flash");
+  }
 
-  // Автосохранение — только если это не загрузка
   if (source !== "load") saveForm();
-
   isUpdating = false;
 }
+
+// Debounced версия для input
+const recalcDebounced = debounce((source) => recalc(source), 60);
 
 // =====================================================
 // СОХРАНЕНИЕ ФОРМЫ
@@ -626,15 +860,47 @@ function resetAll() {
 }
 
 // =====================================================
-// СОБЫТИЯ
+// СОБЫТИЯ — подписка на change И input для всех полей
 // =====================================================
-document.getElementById("c1").addEventListener("change", () => recalc("c1"));
-document.getElementById("c2").addEventListener("input",  () => recalc("c2"));
-document.getElementById("c3").addEventListener("change", () => recalc("c3"));
-document.getElementById("c4").addEventListener("change", () => recalc("c4"));
+["c1", "c2", "c3", "c4"].forEach((id) => {
+  const el = document.getElementById(id);
+  // change — мгновенно (закрытие календаря, Enter)
+  el.addEventListener("change", () => recalc(id));
+  // input — с небольшой задержкой (для мгновенного отклика)
+  el.addEventListener("input", () => recalcDebounced(id));
+});
 
 // =====================================================
-// TOAST — всплывающее уведомление
+// ТЕМА
+// =====================================================
+function applyTheme(theme) {
+  if (theme === "auto") {
+    document.documentElement.removeAttribute("data-theme");
+  } else {
+    document.documentElement.setAttribute("data-theme", theme);
+  }
+
+  document.querySelectorAll(".theme-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.theme === theme);
+  });
+
+  try { localStorage.setItem(STORAGE_THEME, theme); } catch (e) {}
+}
+
+function loadTheme() {
+  let theme = "auto";
+  try {
+    theme = localStorage.getItem(STORAGE_THEME) || "auto";
+  } catch (e) {}
+  applyTheme(theme);
+}
+
+document.querySelectorAll(".theme-btn").forEach((btn) => {
+  btn.addEventListener("click", () => applyTheme(btn.dataset.theme));
+});
+
+// =====================================================
+// TOAST
 // =====================================================
 function showToast(message) {
   const existing = document.getElementById("toast");
@@ -669,7 +935,7 @@ function showToast(message) {
 }
 
 // =====================================================
-// CONFIRM — свой диалог подтверждения
+// CONFIRM
 // =====================================================
 function showConfirm(message, onConfirm) {
   const overlay = document.createElement("div");
@@ -717,7 +983,7 @@ function showConfirm(message, onConfirm) {
 }
 
 // =====================================================
-// PWA — УСТАНОВКА
+// PWA
 // =====================================================
 let deferredPrompt = null;
 
@@ -735,9 +1001,6 @@ document.getElementById("installBanner").addEventListener("click", async () => {
   document.getElementById("installBanner").classList.remove("show");
 });
 
-// =====================================================
-// SERVICE WORKER
-// =====================================================
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("sw.js").catch(() => {});
@@ -748,6 +1011,7 @@ if ("serviceWorker" in navigator) {
 // СТАРТ
 // =====================================================
 window.addEventListener("DOMContentLoaded", () => {
+  loadTheme();
   loadForm();
   renderHistory();
 });
